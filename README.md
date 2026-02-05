@@ -4,8 +4,6 @@ A collection of reusable agent skills following the [agentskills.io specificatio
 
 ## Installation
 
-This repository is designed to be used with [Home Manager](https://github.com/nix-community/home-manager).
-
 ### Using with Home Manager
 
 Add the flake input:
@@ -23,34 +21,18 @@ Add the flake input:
         inherit pkgs;
         modules = [
           agent-skills.homeManagerModules.default
-          {
-            programs.agent-skills = {
-              enable = true;
-              skills = [ "git-workflow" ];
-            };
-          }
+          { programs.agent-skills.enable = true; }
         ];
       };
     };
 }
 ```
 
-### Install All Skills
-
-```nix
-programs.agent-skills = {
-  enable = true;
-  allSkills = true;
-};
-```
-
-Skills are installed to `~/.config/agents/skills/` where Kimi CLI automatically discovers them.
+Skills are installed to `~/.config/agents/skills/agent-skills/` where Kimi CLI automatically discovers them.
 
 ## Available Skills
 
-| Skill | Description |
-|-------|-------------|
-| [git-workflow](skills/development/git-workflow/) | Git workflow assistance (branching, committing, rebasing, PRs) |
+See the `skills/` directory for all available skills.
 
 ## Development
 
@@ -58,43 +40,19 @@ Skills are installed to `~/.config/agents/skills/` where Kimi CLI automatically 
 
 1. Create a new skill from the template:
    ```bash
-   mkdir -p skills/<category>/<skill-name>
-   cp templates/skill/SKILL.md skills/<category>/<skill-name>/
-   ```
-   
-   Or create manually:
-   ```
-   skills/<category>/<skill-name>/SKILL.md
+   mkdir -p skills/<skill-name>
+   cp skill-template.md skills/<skill-name>/SKILL.md
    ```
 
-2. Add your skill to `default.nix`:
-   ```nix
-   <category> = {
-     <skill-name> = loadSkillFromDir "<category>" "<skill-name>";
-   };
-   ```
+2. Edit `skills/<skill-name>/SKILL.md` with your skill content.
 
-3. Validate and test:
+3. Build and test:
    ```bash
-   nix run .#validate    # Validate skill format
-   nix flake check       # Full CI checks
+   nix build              # Build all skills
    ```
-
-## Skill Format
-
-Skills follow the [agentskills.io specification](https://agentskills.io/specification):
-
-```markdown
----
-name: skill-name
-description: Description of what this skill does
----
-
-# Skill Title
-
-Instructions here...
-```
 
 ## License
+
+This repository is licensed under the [MIT License](LICENSE).
 
 Individual skills may have their own licenses specified in their frontmatter.

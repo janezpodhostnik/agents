@@ -1,75 +1,41 @@
 {
   description = "Agent Skills - A collection of reusable agent capabilities";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
-      inputs.nixpkgs-lib.follows = "nixpkgs";
-    };
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.flake-parts.url = "github:hercules-ci/flake-parts";
 
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
-      perSystem = { config, pkgs, system, ... }:
-        let
-          lib = pkgs.lib.extend (final: prev: {
-            agent-skills = import ./lib { inherit pkgs; lib = final; };
-          });
-
-          # Import the skill set
-          skillSet = import ./default.nix { inherit pkgs lib; };
-
-          # Flatten all skills into a single attrset
-          allSkills = lib.agent-skills.flattenSkillSet skillSet;
-
-          # Validation package
-          validateAllSkills = pkgs.writeShellApplication {
-            name = "validate-all-skills";
-            runtimeInputs = [ pkgs.yq ];
-            text = ''
-              SKILLS_DIR="''${1:-${./skills}}"
-              exec ${./lib/validate-script.sh} "$SKILLS_DIR"
-            '';
-          };
-        in
-        {
-          # Individual skill packages
-          packages = allSkills;
-
-          # Validation (for CI)
-          checks.skill-validation = pkgs.runCommand "skill-validation-check" {
-            nativeBuildInputs = [ validateAllSkills ];
-          } ''
-            echo "Running comprehensive skill validation..."
-            validate-all-skills
-            touch $out
-          '';
-
-          # Manual validation
-          apps.validate = {
-            type = "app";
-            program = "${validateAllSkills}/bin/validate-all-skills";
-            meta.description = "Validate all skill files";
-          };
-
-          # Dev shell for contributors
-          devShells.default = pkgs.mkShell {
-            buildInputs = [ pkgs.yq ];
-          };
+      perSystem = { pkgs, ... }: {
+        packages.agent-skills = pkgs.symlinkJoin {
+          name = "agent-skills";
+          paths = map
+            (name: pkgs.runCommand name { } ''
+              mkdir -p $out/share/agent-skills/${name}
+              cp -r ${./skills}/${name}/* $out/share/agent-skills/${name}/
+              test -f $out/share/agent-skills/${name}/SKILL.md
+            '')
+            (builtins.attrNames (builtins.readDir ./skills));
         };
+        packages.default = self.packages.${pkgs.system}.agent-skills;
+
+        devShells.default = pkgs.mkShell {
+          buildInputs = [ pkgs.yq ];
+        };
+      };
 
       flake = {
-        # Home Manager module (primary installation method)
-        homeManagerModules.default = import ./nixosModules/home-manager.nix;
+        overlays.default = final: prev: {
+          agent-skills = self.packages.${prev.system}.agent-skills;
+        };
 
-        # Templates for creating new skills
-        templates = {
-          skill = {
-            path = ./templates/skill;
-            description = "Template for creating a new agent skill";
+        homeManagerModules.default = { config, lib, pkgs, ... }: {
+          options.programs.agent-skills.enable = lib.mkEnableOption "agent skills";
+          config = lib.mkIf config.programs.agent-skills.enable {
+            home.file."agents/skills/agent-skills".source =
+              "${pkgs.agent-skills or self.packages.${pkgs.system}.agent-skills}/share/agent-skills";
           };
         };
       };

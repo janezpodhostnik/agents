@@ -17,14 +17,12 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Function to validate a skill directory
-validate_skill() {
+validate_skills() {
     local skill_path="$1"
     local skill_name
     skill_name="$(basename "${skill_path}")"
-    local category
-    category="$(basename "$(dirname "${skill_path}")")"
 
-    echo -n "  📦 ${category}/${skill_name} ... "
+    echo -n "  📦 ${skill_name} ... "
 
     # Check SKILL.md exists
     if [[ ! -f "${skill_path}/SKILL.md" ]]; then
@@ -111,19 +109,11 @@ validate_skill() {
 
 # Iterate through all skill directories
 if [[ -d "$SKILLS_DIR" ]]; then
-    for category_dir in "$SKILLS_DIR"/*; do
-        if [[ -d "$category_dir" ]]; then
-            category="$(basename "$category_dir")"
-            echo "📁 Category: ${category}"
-
-            for skill_dir in "$category_dir"/*; do
-                if [[ -d "$skill_dir" ]]; then
-                    if ! validate_skill "$skill_dir"; then
-                        FAILED=$((FAILED + 1))
-                    fi
-                fi
-            done
-            echo ""
+    for skill_dir in "$SKILLS_DIR"/*; do
+        if [[ -d "$skill_dir" ]]; then
+            if ! validate_skills "$skill_dir"; then
+                FAILED=$((FAILED + 1))
+            fi
         fi
     done
 else
