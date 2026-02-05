@@ -29,11 +29,12 @@ Each skill is a self-contained directory with a `SKILL.md` file containing instr
 ├── validate-skills.sh         # Validation script for skill format
 ├── flake.nix                  # Nix flake definition (build, packages, modules)
 ├── flake.lock                 # Nix dependency lock file
-├── .envrc                     # direnv configuration
+├── .envrc                     # direnv configuration (use flake)
 ├── .github/
 │   └── workflows/
 │       └── validate-skills.yml  # CI workflow
 ├── README.md                  # Human-facing documentation
+├── LICENSE                    # MIT License
 └── AGENTS.md                  # This file (AI agent documentation)
 ```
 
@@ -47,9 +48,9 @@ Each skill is a directory under `skills/` containing a `SKILL.md` file with:
 ---
 name: skill-name              # Must match directory name, kebab-case, 1-64 chars
 description: Brief description of what this skill does  # 1-1024 characters
-license: MIT                  # License for this skill
-compatibility: Optional requirements  # Max 500 characters
-metadata:
+license: MIT                  # License for this skill (optional)
+compatibility: Optional requirements  # Max 500 characters if present (optional)
+metadata:                     # Optional metadata
   author: your-name
   version: "1.0"
   category: development       # e.g., development, data-analysis, devops
@@ -68,7 +69,7 @@ The markdown content should include:
 
 See `skill-template.md` for a complete template.
 
-## Build Commands
+## Build and Development Commands
 
 ```bash
 # Build all skills
@@ -114,7 +115,7 @@ nix flake check
    nix build
    ```
 
-## Validation Rules
+## Testing and Validation
 
 The `validate-skills.sh` script enforces:
 
@@ -126,8 +127,6 @@ The `validate-skills.sh` script enforces:
 | description field | Required, 1-1024 characters |
 | compatibility field | Optional, max 500 characters if present |
 | name consistency | Should match directory name (warning if different) |
-
-## Testing
 
 Validation is automatic via:
 

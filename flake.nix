@@ -8,7 +8,7 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
-      perSystem = { pkgs, lib, ... }: {
+      perSystem = { pkgs, lib, system, ... }: {
         packages.agent-skills = pkgs.symlinkJoin {
           name = "agent-skills";
           paths = lib.mapAttrsToList
@@ -19,7 +19,7 @@
             '')
             (builtins.readDir ./skills);
         };
-        packages.default = self.packages.${pkgs.system}.agent-skills;
+        packages.default = self.packages.${system}.agent-skills;
 
         checks.validate-skills = pkgs.runCommand "validate-skills"
           {
@@ -39,7 +39,7 @@
 
       flake = {
         overlays.default = final: prev: {
-          agent-skills = self.packages.${prev.system}.agent-skills;
+          agent-skills = self.packages.${prev.stdenv.hostPlatform.system}.agent-skills;
         };
 
         homeManagerModules.default = { config, lib, pkgs, ... }: {
