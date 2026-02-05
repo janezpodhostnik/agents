@@ -4,12 +4,12 @@ description: A brief description of what this skill does and when to use it. Kee
 license: MIT
 compatibility: Optional. Describe any environment requirements, system packages needed, or network access required.
 metadata:
-  author: your-name
+  author: {{author-name}}
   version: "1.0"
   category: development
 ---
 
-# {{Skill Name}}
+# {{skill-display-name}}
 
 Brief introduction to what this skill helps with.
 

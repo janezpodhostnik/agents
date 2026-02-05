@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# lib/validate-script.sh - Validation script for agent skills
-# Used by: nix run .#validate and nix flake check
+# validate-skills.sh - Validation script for agent skills
+# Used by: nix flake check
 
 set -euo pipefail
 
@@ -40,7 +40,7 @@ validate_skills() {
 
     # Extract frontmatter (content between first two --- lines)
     local FRONTMATTER
-    FRONTMATTER=$(awk '/^---$/{if (count==0) {count=1; next} else {exit}} count' "${skill_path}/SKILL.md")
+    FRONTMATTER=$(sed -n '1,/^---$/p' "${skill_path}/SKILL.md" | sed '$d')
 
     # Validate 'name' field
     local NAME_IN_FILE
