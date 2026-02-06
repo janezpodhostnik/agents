@@ -1,6 +1,6 @@
 # Agent Skills
 
-A collection of reusable agent skills following the [agentskills.io specification](https://agentskills.io/specification).
+A collection of personal reusable agent skills following the [agentskills.io specification](https://agentskills.io/specification). Use at your own risk.
 
 ## Installation
 
