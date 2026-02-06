@@ -45,7 +45,7 @@
         homeManagerModules.default = { config, lib, pkgs, ... }: {
           options.programs.agent-skills.enable = lib.mkEnableOption "agent skills";
           config = lib.mkIf config.programs.agent-skills.enable {
-            home.file.".config/agents/skills/agent-skills".source =
+            home.file.".config/agents/skills".source =
               "${pkgs.agent-skills}/share/agent-skills";
           };
         };
