@@ -45,7 +45,11 @@
         homeManagerModules.default = { config, lib, pkgs, ... }: {
           options.programs.agent-skills.enable = lib.mkEnableOption "agent skills";
           config = lib.mkIf config.programs.agent-skills.enable {
+            # Kimi CLI
             home.file.".config/agents/skills".source =
+              "${pkgs.agent-skills}/share/agent-skills";
+            # Claude Code
+            home.file.".claude/skills".source =
               "${pkgs.agent-skills}/share/agent-skills";
           };
         };

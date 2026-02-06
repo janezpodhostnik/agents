@@ -38,7 +38,34 @@ Each skill is a self-contained directory with a `SKILL.md` file containing instr
 └── AGENTS.md                  # This file (AI agent documentation)
 ```
 
-## Skill Format
+## Build System Architecture
+
+### Nix Flake Structure
+
+The project uses **flake-parts** for modular flake composition:
+
+**Per-System Outputs** (`perSystem`):
+- `packages.agent-skills`: Symlinks all skills from `./skills/` to `$out/share/agent-skills/`
+- `packages.default`: Alias for `agent-skills`
+- `checks.validate-skills`: Runs `validate-skills.sh` on the skills directory
+- `devShells.default`: Provides `yq` for YAML processing
+
+**Flake-Wide Outputs** (`flake`):
+- `overlays.default`: Makes `agent-skills` available via Nix overlay
+- `homeManagerModules.default`: Home Manager module that installs skills to `~/.config/agents/skills/`
+
+### Build Outputs
+
+After `nix build`, the result contains:
+```
+result/
+└── share/
+    └── agent-skills/
+        └── <skill-name>/
+            └── SKILL.md
+```
+
+## Skill Format Specification
 
 Each skill is a directory under `skills/` containing a `SKILL.md` file with:
 
@@ -47,6 +74,7 @@ Each skill is a directory under `skills/` containing a `SKILL.md` file with:
 ```yaml
 ---
 name: skill-name              # Must match directory name, kebab-case, 1-64 chars
+                             # Format: ^[a-z0-9]+(-[a-z0-9]+)*$
 description: Brief description of what this skill does  # 1-1024 characters
 license: MIT                  # License for this skill (optional)
 compatibility: Optional requirements  # Max 500 characters if present (optional)
@@ -88,6 +116,37 @@ nix develop
 nix flake check
 ```
 
+## Testing and Validation
+
+The `validate-skills.sh` script enforces:
+
+| Check | Rule |
+|-------|------|
+| SKILL.md exists | Required file in each skill directory |
+| YAML frontmatter | Must start with `---` |
+| name field | Required, 1-64 chars, kebab-case (`^[a-z0-9]+(-[a-z0-9]+)*$`) |
+| description field | Required, 1-1024 characters |
+| compatibility field | Optional, max 500 characters if present |
+| name consistency | Should match directory name (warning if different) |
+
+Validation is automatic via:
+
+1. **Local validation**:
+   ```bash
+   bash validate-skills.sh ./skills
+   ```
+
+2. **Nix flake check**:
+   ```bash
+   nix flake check
+   ```
+
+3. **CI/CD (GitHub Actions)**:
+   - Runs on push to `main` branch
+   - Runs on pull requests to `main`
+   - Uses `nix flake check` for flake validation
+   - Uses `nix build` to ensure skills compile correctly
+
 ## Adding a New Skill
 
 1. Create skill directory:
@@ -114,32 +173,6 @@ nix flake check
    ```bash
    nix build
    ```
-
-## Testing and Validation
-
-The `validate-skills.sh` script enforces:
-
-| Check | Rule |
-|-------|------|
-| SKILL.md exists | Required file in each skill directory |
-| YAML frontmatter | Must start with `---` |
-| name field | Required, 1-64 chars, kebab-case (`^[a-z0-9]+(-[a-z0-9]+)*$`) |
-| description field | Required, 1-1024 characters |
-| compatibility field | Optional, max 500 characters if present |
-| name consistency | Should match directory name (warning if different) |
-
-Validation is automatic via:
-
-1. **Local validation**:
-   ```bash
-   bash validate-skills.sh ./skills
-   ```
-
-2. **CI/CD (GitHub Actions)**:
-   - Runs on push to `main` branch
-   - Runs on pull requests to `main`
-   - Uses `nix flake check` for flake validation
-   - Uses `nix build` to ensure skills compile correctly
 
 ## Deployment & Distribution
 

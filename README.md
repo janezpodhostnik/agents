@@ -28,7 +28,7 @@ Add the flake input:
 }
 ```
 
-Skills are installed to `~/.config/agents/skills/agent-skills/` where Kimi CLI automatically discovers them.
+Skills are installed to `~/.config/agents/skills/` (Kimi CLI) and `~/.claude/skills/` (Claude Code) where both tools automatically discover them.
 
 ## Available Skills
 
